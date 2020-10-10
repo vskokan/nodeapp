@@ -11,8 +11,8 @@ const client = require('../db')
 
 exports.findOneByParameter = (req, res) => {
     //let parameter = 'reviews.id' //req.body.parameter
-    //let value = '2'//String(req.body.value)
-    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD, waterbodies.id AS WATERBODYID, waterbodies.name AS WATERBODY FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid WHERE reviews.id = 2;', [], function (err, result) {
+    let value = '1'//String(req.body.value)
+    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, reviews.latitude AS LATITUDE, reviews.longitude AS LONGITUDE, reviews.isBaiting as ISBAITING, reviews.roadQuality AS ROADQUALITY, reviews.fishingTime AS FISHINGTIME, reviews.reviewDate AS DATE, reviews.description AS DESCRIPTION, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD, waterbodies.id AS WATERBODYID, waterbodies.name AS WATERBODY FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid  WHERE reviews.id = $1;', [value], function (err, result) {
         if (err) {
             return next(err)
         } 
@@ -20,6 +20,13 @@ exports.findOneByParameter = (req, res) => {
         const fullReview = {
             login: "",
             reviewId: "",
+            latitude: "",
+            longitude: "",
+            isBaiting: "",
+            roadQuality: "",
+            fishingTime: "",
+            reviewDate: "",
+            description: "",
             waterbody: {
                 id: "",
                 name: ""
@@ -33,6 +40,13 @@ exports.findOneByParameter = (req, res) => {
         fullReview.reviewId = result.rows[0].reviewid
         fullReview.waterbody.id = result.rows[0].waterbodyid
         fullReview.waterbody.name = result.rows[0].waterbody
+        fullReview.latitude = result.rows[0].latitude
+        fullReview.longitude = result.rows[0].longitude
+        fullReview.isBaiting = result.rows[0].isbaiting
+        fullReview.roadQuality = result.rows[0].roadquality
+        fullReview.fishingTime = result.rows[0].fishingtime
+        fullReview.reviewDate = result.rows[0].date
+        fullReview.description = result.rows[0].description
         
         result.rows.forEach(row => {
             catchRows.push({fish: {id: row.fishid, name: row.fish}, bait: {id: row.baitid, name: row.bait}, method: {id: row.methodid, name: row.method},})
