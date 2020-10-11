@@ -4,7 +4,7 @@ module.exports = app => {
     app.use('/api/full', router);
 
     //router.post("/", fullReview.create);
-    router.get("/", fullReview.findOneByParameter);
+    router.get("/:id", fullReview.findOneByParameter);
     //router.get("/:id", fishes.findOne);
     //router.put("/:id", fishes.update);
     //router.delete("/:id", fishes.delete);

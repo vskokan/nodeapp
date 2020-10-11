@@ -10,9 +10,11 @@ const client = require('../db')
 // }
 
 exports.findOneByParameter = (req, res) => {
-    //let parameter = 'reviews.id' //req.body.parameter
-    let value = '1'//String(req.body.value)
-    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, reviews.latitude AS LATITUDE, reviews.longitude AS LONGITUDE, reviews.isBaiting as ISBAITING, reviews.roadQuality AS ROADQUALITY, reviews.fishingTime AS FISHINGTIME, reviews.reviewDate AS DATE, reviews.description AS DESCRIPTION, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD, waterbodies.id AS WATERBODYID, waterbodies.name AS WATERBODY FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid  WHERE reviews.id = $1;', [value], function (err, result) {
+
+    let value = String(req.params.id)
+    let dateFormat = 'DD/Mon/YYYY'
+    console.log(value)
+    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, reviews.latitude AS LATITUDE, reviews.longitude AS LONGITUDE, reviews.isBaiting as ISBAITING, reviews.roadQuality AS ROADQUALITY, reviews.fishingTime AS FISHINGTIME, to_char(reviews.reviewDate, $2) AS DATE, reviews.description AS DESCRIPTION, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD, waterbodies.id AS WATERBODYID, waterbodies.name AS WATERBODY FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid  WHERE reviews.id = $1;', [value, dateFormat], function (err, result) {
         if (err) {
             return next(err)
         } 
@@ -52,12 +54,6 @@ exports.findOneByParameter = (req, res) => {
             catchRows.push({fish: {id: row.fishid, name: row.fish}, bait: {id: row.baitid, name: row.bait}, method: {id: row.methodid, name: row.method},})
         })
 
-        let temp = [
-
-        ]
-        
-        
-        
         function formBaitAndMethod(array) {
             let combinations  = []
             if (array.length === 1) {
