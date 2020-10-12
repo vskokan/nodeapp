@@ -11,8 +11,6 @@ exports.findAll = (req, res) => {
 }
 
 exports.create = (req, res) => {
-    // req.append('Access-Control-Allow-Origin', '*');
-    // req.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     const fish = {
         id: req.body.id,
         name: req.body.name,
