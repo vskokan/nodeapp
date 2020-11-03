@@ -4,9 +4,9 @@ module.exports = app => {
     app.use('/api/baits', router);
 
     router.post("/", bait.create);
-    router.get("/", bait.findAll);
-    //router.get("/:id", fishes.findOne);
-    //router.put("/:id", fishes.update);
-    //router.delete("/:id", fishes.delete);
-    //router.delete("/", fishes.deleteAll);
+    router.get("/", bait.readAll);
+    router.get("/:id", bait.readOne);
+    router.put("/:id", bait.update);
+    router.delete("/:id", bait.deleteOne);
+    router.delete("/", bait.deleteAll);
 }
