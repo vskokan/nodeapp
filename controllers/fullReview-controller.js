@@ -14,7 +14,7 @@ exports.findOneByParameter = (req, res) => {
     let value = String(req.params.id)
     let dateFormat = 'DD/Mon/YYYY'
     console.log(value)
-    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, reviews.latitude AS LATITUDE, reviews.longitude AS LONGITUDE, reviews.isBaiting as ISBAITING, reviews.roadQuality AS ROADQUALITY, reviews.fishingTime AS FISHINGTIME, to_char(reviews.reviewDate, $2) AS DATE, reviews.description AS DESCRIPTION, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD, waterbodies.id AS WATERBODYID, waterbodies.name AS WATERBODY FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid  WHERE reviews.id = $1;', [value, dateFormat], function (err, result) {
+    client.query('SELECT users.login as USERLOGIN, reviews.id AS REVIEWID, reviews.latitude AS LATITUDE, reviews.longitude AS LONGITUDE, reviews.isBaiting as ISBAITING, reviews.roadQuality AS ROADQUALITY, reviews.fishingTime AS FISHINGTIME, to_char(reviews.reviewDate, $2) AS DATE, reviews.description AS DESCRIPTION, facts.id AS FACTID, fishes.id AS FISHID, fishes.name AS FISH, baits.id AS BAITID, baits.name AS BAIT, methods.id AS METHODID, methods.name AS METHOD FROM (((((users INNER JOIN reviews ON reviews.login = users.login) INNER JOIN facts ON facts.reviewid = reviews.id) INNER JOIN fishes ON fishes.id = facts.fishid) INNER JOIN baits ON baits.id = facts.baitid) INNER JOIN methods ON methods.id = facts.methodid) INNER JOIN waterbodies ON waterbodies.id = facts.waterbodyid  WHERE reviews.id = $1;', [value, dateFormat], function (err, result) {
         if (err) {
             return next(err)
         } 
@@ -40,8 +40,8 @@ exports.findOneByParameter = (req, res) => {
 
         fullReview.login = result.rows[0].userlogin
         fullReview.reviewId = result.rows[0].reviewid
-        fullReview.waterbody.id = result.rows[0].waterbodyid
-        fullReview.waterbody.name = result.rows[0].waterbody
+        // fullReview.waterbody.id = result.rows[0].waterbodyid
+        // fullReview.waterbody.name = result.rows[0].waterbody
         fullReview.latitude = result.rows[0].latitude
         fullReview.longitude = result.rows[0].longitude
         fullReview.isBaiting = result.rows[0].isbaiting
