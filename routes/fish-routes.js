@@ -20,9 +20,10 @@ module.exports = app => {
 
     router.post("/", fish.create);
     router.get("/", fish.findAll);
+    router.get("/pag/", fish.findAllPagination);
     // router.post("/test/", fish.parse);
     //router.post("/test/", upload.single('image'), fish.parse);
-    
+
     //router.get("/:id", fishes.findOne);
     //router.put("/:id", fishes.update);
     //router.delete("/:id", fishes.delete);

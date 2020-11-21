@@ -62,23 +62,35 @@ exports.create = (req, res) => {
 }
 
 exports.findAllPagination = (req, res) => {
-    const rowsPerPage = 1;
-    let page = req.params.page
+    const rowsPerPage = 3;
+    let page = req.query.page
+    console.log(page)
 
-    let maxpage = 1
+    const data = {
+        rows: '',
+        maxpage:''
+    }
 
-    client.query('SELECT COUNT(*) FROM fishes', [], function (err, result) {
+    client.query('SELECT COUNT(*) AS rowNumber FROM fishes;', [], function (err, result) {
         if (err) {
-            console.log('Ошибка')
+            console.log('Ошибка на этапе подсчета')
             return
         }
-        maxpage = Math.ceil(result / rowsPerPage)
+        console.log(result.rows[0].rownumber)
+        data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
+        console.log(data.maxpage)
+         
     })
+    let from = rowsPerPage * (page - 1) + 1
+    let to = rowsPerPage * page
+    console.log(from, to)
 
-    client.query('SELECT * FROM fishes;', [], function (err, result) {
+    client.query('SELECT * FROM (SELECT id, name, image, description, ROW_NUMBER () OVER (ORDER BY id) FROM fishes) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
          if (err) {
-            return next(err)
+            console.log(err)
         }
-        res.json(result.rows)
+        data.rows = result.rows
+        console.log(data)
+        res.json(data)
     })
 }
