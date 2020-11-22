@@ -57,12 +57,13 @@ exports.create = (req, res) => {
         //res.send(result) 
     })
 
-    res = fish
-    console.log(res)
+    // res = fish
+    // console.log(res)
+    res.status(200).json({status:"ok"})
 }
 
 exports.findAllPagination = (req, res) => {
-    const rowsPerPage = 3;
+    const rowsPerPage = 10;
     let page = req.query.page
     console.log(page)
 
@@ -78,19 +79,25 @@ exports.findAllPagination = (req, res) => {
         }
         console.log(result.rows[0].rownumber)
         data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
-        console.log(data.maxpage)
+        console.log('maxpage: ' + data.maxpage)
+
+
+        let from = rowsPerPage * (page - 1) + 1
+        let to = rowsPerPage * page
+        console.log(from, to)
+
+        client.query('SELECT * FROM (SELECT id, name, image, description, ROW_NUMBER () OVER (ORDER BY id) FROM fishes) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
+            if (err) {
+                console.log(err)
+            }
+            data.rows = result.rows
+            console.log(data)
+            res.json(data)
+    })
+
+
+
          
     })
-    let from = rowsPerPage * (page - 1) + 1
-    let to = rowsPerPage * page
-    console.log(from, to)
-
-    client.query('SELECT * FROM (SELECT id, name, image, description, ROW_NUMBER () OVER (ORDER BY id) FROM fishes) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
-         if (err) {
-            console.log(err)
-        }
-        data.rows = result.rows
-        console.log(data)
-        res.json(data)
-    })
+    
 }
