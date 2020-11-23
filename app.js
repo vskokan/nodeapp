@@ -1,3 +1,5 @@
+var events = require('events').EventEmitter.defaultMaxListeners = 0;
+
 const express = require("express");
 const cors = require('cors')
 const app = express();
@@ -6,10 +8,6 @@ var corsOptions = {
   origin: "*"
 };
 
-
-
-
-//var events = require('events').EventEmitter.defaultMaxListeners = 15;
 
 app.use(bodyParser.json());
 app.use(cors(corsOptions));

@@ -7,6 +7,6 @@ module.exports = app => {
     router.get("/", bait.readAll);
     router.get("/:id", bait.readOne);
     router.put("/:id", bait.update);
-    router.delete("/:id", bait.deleteOne);
+    router.delete("/:id", bait.deleteById);
     router.delete("/", bait.deleteAll);
 }

@@ -47,8 +47,16 @@ exports.update = (req, res) => {
    })
 }
 
-exports.deleteOne = (req, res) => {
-    //сюда удаление одной записи
+exports.deleteById = (req, res) => {
+    let id = req.params.id
+    console.log(id)
+    client.query('DELETE FROM baits WHERE id = $1;', [id], function(err, result) {
+        if(err) {
+            console.log('Ошибка во время удаления')
+            return
+        }
+        res.status(200).json({status: 'ok'})
+    })
 }
 
 exports.deleteAll = (req, res) => {
