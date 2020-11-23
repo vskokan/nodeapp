@@ -26,6 +26,6 @@ module.exports = app => {
 
     //router.get("/:id", fishes.findOne);
     //router.put("/:id", fishes.update);
-    //router.delete("/:id", fishes.delete);
+    router.delete("/:id", fish.deleteById);
     //router.delete("/", fishes.deleteAll);
 }

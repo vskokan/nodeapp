@@ -12,6 +12,18 @@ exports.findAll = (req, res) => {
     })
 }
 
+exports.deleteById = (req, res) => {
+    let id = req.params.id
+    console.log(id)
+    client.query('DELETE FROM fishes WHERE id = $1;', [id], function(err, result) {
+        if(err) {
+            console.log('Ошибка во время удаления')
+            return
+        }
+        res.status(200).json({status: 'ok'})
+    })
+}
+
 // exports.create = (req, res) => {
 //     const fish = {
 //         id: req.body.id,
