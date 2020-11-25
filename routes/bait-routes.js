@@ -6,7 +6,7 @@ module.exports = app => {
     router.post("/", bait.create);
     router.get("/", bait.readAll);
     router.get("/:id", bait.readOne);
-    router.put("/:id", bait.update);
+    router.post("/update", bait.update);
     router.delete("/:id", bait.deleteById);
     router.delete("/", bait.deleteAll);
 }

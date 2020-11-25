@@ -14,12 +14,44 @@ exports.create = (req, res) => {
 }
 
 exports.readAll = (req, res) => {
-    client.query('SELECT * FROM baits;', [], function (err, result) {
-         if (err) {
-            return next(err)
+    const page = req.query.page
+    if (page === undefined) {
+        client.query('SELECT * FROM baits;', [], function (err, result) {
+            if (err) {
+               return next(err)
+           }
+           res.json(result.rows)
+       })
+    } else {
+        const data = {
+            rows: '',
+            maxpage:''
         }
-        res.json(result.rows)
-    })
+        const rowsPerPage = 3
+        client.query('SELECT COUNT(*) AS rowNumber FROM baits;', [], function (err, result) {
+            if (err) {
+                console.log('Ошибка на этапе подсчета')
+                return
+            }
+            console.log(result.rows[0].rownumber)
+            data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
+            console.log('maxpage: ' + data.maxpage)
+            console.log('page from url ', page)
+    
+            let from = rowsPerPage * (page - 1) + 1
+            let to = rowsPerPage * page
+            console.log(from, to)
+    
+            client.query('SELECT * FROM (SELECT id, name, description, ROW_NUMBER () OVER (ORDER BY id) FROM baits) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
+                if (err) {
+                    console.log(err)
+                }
+                data.rows = result.rows
+                console.log(data)
+                res.json(data)
+            })  
+        })
+    }
 }
 
 exports.readOne = (req, res) => {
@@ -35,13 +67,23 @@ exports.readOne = (req, res) => {
 
 exports.update = (req, res) => {
     //сюда изменение одной записи
-    let id = String(req.params.id)
-    let name = req.body.name
-    let description = req.body.description
+    let id = req.query.id
+    console.log(id)
+    // let name = req.body.name
+    // let description = req.body.description
 
-    client.query('UPDATE baits SET values(name, description) = ($1, $2) WHERE id = $3;', [name, description, id], function (err, result) {
+    const bait = {
+        id: req.body.id,
+        name: req.body.name,
+        description: req.body.description
+    }
+
+    console.log(bait)
+    // console.log(description)
+    client.query('UPDATE baits SET name = $1, description = $2 WHERE id = $3;', [bait.name, bait.description, bait.id], function (err, result) {
         if (err) {
-           return next(err)
+            console.log('Ошибка во время обновления')
+            return
        }
        res.json(result.rows)
    })
