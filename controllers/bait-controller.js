@@ -15,6 +15,17 @@ exports.create = (req, res) => {
 
 exports.readAll = (req, res) => {
     const page = req.query.page
+    const p = req.query.p
+    if (p === "amount") {
+        client.query('SELECT COUNT(*) AS amount FROM baits', [], function(err, result) {
+            if (err) {
+                console.log('Что-то пошло не так')
+                return
+            }
+            res.json(result.rows[0].amount)
+        })
+        return
+    }
     if (page === undefined) {
         client.query('SELECT * FROM baits;', [], function (err, result) {
             if (err) {
@@ -27,7 +38,7 @@ exports.readAll = (req, res) => {
             rows: '',
             maxpage:''
         }
-        const rowsPerPage = 3
+        const rowsPerPage = 7
         client.query('SELECT COUNT(*) AS rowNumber FROM baits;', [], function (err, result) {
             if (err) {
                 console.log('Ошибка на этапе подсчета')
