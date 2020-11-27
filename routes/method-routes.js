@@ -4,9 +4,9 @@ module.exports = app => {
     app.use('/api/methods', router);
 
     router.post("/", method.create);
-    router.get("/", method.findAll);
-    //router.get("/:id", fishes.findOne);
-    //router.put("/:id", fishes.update);
-    //router.delete("/:id", fishes.delete);
-    //router.delete("/", fishes.deleteAll);
+    router.get("/", method.readAll);
+    router.get("/:id", method.readOne);
+    router.post("/update", method.update);
+    router.delete("/:id", method.deleteById);
+    router.delete("/", method.deleteAll);
 }
