@@ -17,7 +17,7 @@ require("./routes/fish-routes")(app);
 require("./routes/user-routes")(app);
 require("./routes/bait-routes")(app);
 require("./routes/method-routes")(app);
-// require("./routes/waterbody-routes")(app);
+require("./routes/district-routes")(app);
 require("./routes/review-routes")(app);
 require("./routes/fact-routes")(app);
 require("./routes/fullReview-routes")(app);
