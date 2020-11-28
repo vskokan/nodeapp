@@ -19,7 +19,8 @@ module.exports = app => {
     app.use('/api/fish', router);
 
     router.post("/", fish.create);
-    router.get("/", fish.findAll);
+    // router.get("/", fish.findAll);
+    router.get("/", fish.readAll);
     router.get("/pag/", fish.findAllPagination);
     // router.post("/test/", fish.parse);
     //router.post("/test/", upload.single('image'), fish.parse);
