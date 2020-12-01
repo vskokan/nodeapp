@@ -18,6 +18,7 @@ require("./routes/user-routes")(app);
 require("./routes/bait-routes")(app);
 require("./routes/method-routes")(app);
 require("./routes/district-routes")(app);
+require("./routes/place-routes")(app);
 require("./routes/review-routes")(app);
 require("./routes/fact-routes")(app);
 require("./routes/fullReview-routes")(app);

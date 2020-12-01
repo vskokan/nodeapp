@@ -8,7 +8,7 @@ module.exports = app => {
             cb(null, "uploads/fishes/");
         },
         filename: (req, file, cb) =>{
-            cb(null, file.originalname);
+            cb(null, Date.now() + file.originalname);
         }
     });
 
