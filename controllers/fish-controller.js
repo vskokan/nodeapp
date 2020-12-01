@@ -1,5 +1,6 @@
 //import { fish } from '../models/fish-model.js'
 const client = require('../db')
+const fs = require('fs')
 
 exports.readAll = (req, res) => {
     const page = req.query.page
@@ -34,19 +35,19 @@ exports.readAll = (req, res) => {
             }
             console.log(result.rows[0].rownumber)
             data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
-            console.log('maxpage: ' + data.maxpage)
-            console.log('page from url ', page)
+           // console.log('maxpage: ' + data.maxpage)
+           // console.log('page from url ', page)
     
             let from = rowsPerPage * (page - 1) + 1
             let to = rowsPerPage * page
-            console.log(from, to)
+            //console.log(from, to)
     
             client.query('SELECT * FROM (SELECT id, name, image, description, ROW_NUMBER () OVER (ORDER BY id) FROM fishes) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
                 if (err) {
                     console.log(err)
                 }
                 data.rows = result.rows
-                console.log(data)
+                //console.log(data)
                 res.json(data)
             })  
         })
@@ -122,6 +123,53 @@ exports.create = (req, res) => {
     // res = fish
     // console.log(res)
     res.status(200).json({status:"ok"})
+}
+
+exports.update = (req, res) => {
+    const fish = {
+        id: req.params.id,
+        name: req.body.name,
+        description: req.body.description,
+    }
+
+    console.log(fish)
+
+    if (req.file !== undefined) {
+        fish.image = 'uploads/fishes/' + req.file.filename
+        console.log(fish)
+
+        client.query('SELECT image AS image FROM fishes WHERE id = $1', [fish.id], function(err, result) {
+            if(err) {
+                console.log('Ошибка во время поиска ссылки на изображение')
+                res.json({status:"error"})
+            }
+            console.log(result.rows[0].image)
+            const oldLink = result.rows[0].image
+            fs.unlinkSync(oldLink)
+
+            client.query('UPDATE fishes SET name = $1, description = $2, image = $3 WHERE id = $4', [fish.name, fish.description, fish.image, fish.id], function (err, res) {
+                if (err) {
+                    console.log('Ошибка во время обновления данных')
+                    return
+                    // res.json({status:"error"})
+                }
+                
+            })
+
+        })
+    } else {
+        client.query('UPDATE fishes SET name = $1, description = $2 WHERE id = $3', [fish.name, fish.description, fish.id], function (err, res) {
+            if (err) {
+                console.log('Ошибка во время обновления данных')
+                return
+                // res.json({status:"error"})
+            }
+            
+        })
+    }
+
+    //res.status(200).json({status:"ok"})
+    res.json({status:"ok"})
 }
 
 exports.findAllPagination = (req, res) => {

@@ -26,7 +26,7 @@ module.exports = app => {
     //router.post("/test/", upload.single('image'), fish.parse);
 
     //router.get("/:id", fishes.findOne);
-    //router.put("/:id", fishes.update);
+    router.put("/:id", fish.update);
     router.delete("/:id", fish.deleteById);
     //router.delete("/", fishes.deleteAll);
 }
