@@ -4,9 +4,8 @@ module.exports = app => {
     app.use('/api/users', router);
 
     router.post("/", user.create);
-    router.get("/", user.findAll);
-    //router.get("/:id", fishes.findOne);
-    //router.put("/:id", fishes.update);
-    //router.delete("/:id", fishes.delete);
-    //router.delete("/", fishes.deleteAll);
+    router.get("/", user.readAll);
+    router.get("/:id", user.readOne);
+    router.put("/:id", user.update);
+    router.delete("/:id", user.deleteById);
 }
