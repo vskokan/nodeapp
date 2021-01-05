@@ -70,7 +70,7 @@ exports.readOne = (req, res) => {
         if (err) {
            return next(err)
        }
-       res.json(result.rows)
+       res.json(result.rows[0])
    })
 }
 
@@ -112,3 +112,13 @@ exports.deleteAll = (req, res) => {
        res.send(result)
    })
 }
+
+// exports.findById = (req, res) => {
+//     client.query('SELECT * FROM districts WHERE id = $1', [id], function(err, result) {
+//         if (err) {
+//             console.log('Ошибка во время поиска по айди')
+//             return
+//         }
+//         res.json(result.rows)
+//     })
+// }

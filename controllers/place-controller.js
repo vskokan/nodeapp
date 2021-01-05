@@ -8,7 +8,7 @@ exports.create = (req, res) => {
     client.query('INSERT INTO places (name, district) VALUES ($1, $2);', [place.name, place.district], function (err, result) {
         if (err) {
             return next(err)
-        }   
+        }
         res.send(result)
     })
 }
@@ -17,7 +17,7 @@ exports.readAll = (req, res) => {
     const page = req.query.page
     const p = req.query.p
     if (p === "amount") {
-        client.query('SELECT COUNT(*) AS amount FROM places', [], function(err, result) {
+        client.query('SELECT COUNT(*) AS amount FROM places', [], function (err, result) {
             if (err) {
                 console.log('Что-то пошло не так')
                 return
@@ -29,14 +29,14 @@ exports.readAll = (req, res) => {
     if (page === undefined) {
         client.query('SELECT * FROM places;', [], function (err, result) {
             if (err) {
-               return next(err)
-           }
-           res.json(result.rows)
-       })
+                return next(err)
+            }
+            res.json(result.rows)
+        })
     } else {
         const data = {
             rows: '',
-            maxpage:''
+            maxpage: ''
         }
         const rowsPerPage = 7
         client.query('SELECT COUNT(*) AS rowNumber FROM places;', [], function (err, result) {
@@ -48,11 +48,11 @@ exports.readAll = (req, res) => {
             data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
             console.log('maxpage: ' + data.maxpage)
             console.log('page from url ', page)
-    
+
             let from = rowsPerPage * (page - 1) + 1
             let to = rowsPerPage * page
             console.log(from, to)
-    
+
             client.query('SELECT * FROM (SELECT id, name, district, ROW_NUMBER () OVER (ORDER BY id) FROM places) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
                 if (err) {
                     console.log(err)
@@ -60,7 +60,7 @@ exports.readAll = (req, res) => {
                 data.rows = result.rows
                 console.log(data)
                 res.json(data)
-            })  
+            })
         })
     }
 }
@@ -69,10 +69,10 @@ exports.readOne = (req, res) => {
     let id = String(req.params.id)
     client.query('SELECT * FROM places WHERE id = $1;', [id], function (err, result) {
         if (err) {
-           return next(err)
-       }
-       res.json(result.rows)
-   })
+            return next(err)
+        }
+        res.json(result.rows)
+    })
 }
 
 exports.update = (req, res) => {
@@ -89,28 +89,30 @@ exports.update = (req, res) => {
         if (err) {
             console.log('Ошибка во время обновления')
             return
-       }
-       res.json(result.rows)
-   })
+        }
+        res.json(result.rows)
+    })
 }
 
 exports.deleteById = (req, res) => {
     let id = req.params.id
-    client.query('DELETE FROM places WHERE id = $1;', [id], function(err, result) {
-        if(err) {
+    client.query('DELETE FROM places WHERE id = $1;', [id], function (err, result) {
+        if (err) {
             console.log('Ошибка во время удаления')
             return
         }
-        res.status(200).json({status: 'ok'})
+        res.status(200).json({
+            status: 'ok'
+        })
     })
 }
 
 exports.deleteAll = (req, res) => {
     client.query('DELETE * FROM places;', [], function (err, result) {
         if (err) {
-           return next(err)
-       }
-       result = 'Удалено'
-       res.send(result)
-   })
+            return next(err)
+        }
+        result = 'Удалено'
+        res.send(result)
+    })
 }
