@@ -1,17 +1,23 @@
-const ExpressFormidable = require('express-formidable')
+//const ExpressFormidable = require('express-formidable') Надо бы удалить это вообще
 const client = require('../db')
+const bcrypt = require('bcrypt')
 
 exports.create = (req, res) => {
     const user = {
-        login: req.body.password,
+        login: req.body.login,
         email: req.body.email,
         password: req.body.password,
-        admin: req.body.admin,
+        admin: 0,
+        name: 'Не указано',
         place: req.body.place,
-        avatar: 'uploads/users/default.jpg',
+        avatar: 'uploads/users/default.png',
         raiting: 0
     }
-    client.query('INSERT INTO users (login, email, password, admin, place, avatar, raiting) VALUES ($1, $2, $3, $4, $5, $6, $7);', [user.login, user.email, user.password, user.admin, user.place, user.avatar, user.raiting], function (err, result) {
+
+    const salt = bcrypt.genSaltSync(10); //что такое соль? почитать про то как это работает
+    user.cryptedPassword = bcrypt.hashSync(user.password, salt)
+
+    client.query('INSERT INTO users (login, email, password, admin, name, place, avatar, raiting) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);', [user.login, user.email, user.cryptedPassword, user.admin, user.name, user.place, user.avatar, user.raiting], function (err, result) {
         if (err) {
             return next(err)
         }   
@@ -59,7 +65,7 @@ exports.readAll = (req, res) => {
             let to = rowsPerPage * page
             console.log(from, to)
     
-            client.query('SELECT * FROM (SELECT login, email, password, admin, place, avatar, raiting, ROW_NUMBER () OVER (ORDER BY login) FROM users) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
+            client.query('SELECT * FROM (SELECT login, email, password, admin, name, place, avatar, raiting, ROW_NUMBER () OVER (ORDER BY login) FROM users) AS numberedRows WHERE row_number BETWEEN $1 AND $2;', [from, to], function (err, result) {
                 if (err) {
                     console.log(err)
                 }
@@ -100,9 +106,9 @@ exports.update = (req, res) => {
    })
 }
 
-exports.deleteById = (req, res) => {
-    let id = req.params.id
-    client.query('DELETE FROM users WHERE id = $1;', [id], function(err, result) {
+exports.deleteByLogin = (req, res) => {
+    let login = req.params.login
+    client.query('DELETE FROM users WHERE login = $1;', [login], function(err, result) {
         if(err) {
             console.log('Ошибка во время удаления')
             return
