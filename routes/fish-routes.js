@@ -5,20 +5,23 @@ module.exports = app => {
     
     const storageConfig = multer.diskStorage({
         destination: (req, file, cb) =>{
-            cb(null, "uploads/fishes/");
+            if (file.fieldname == "image")
+                cb(null, "uploads/fishes/")
+            if (file.fieldname == "avatar")
+                cb(null, "uploads/users/")
         },
         filename: (req, file, cb) =>{
             cb(null, Date.now() + file.originalname);
         }
     });
 
-    app.use(multer({storage:storageConfig}).single("image"));
-
-    //var upload = multer({ dest: 'uploads/fishes/' })
+    //app.use(multer({storage:storageConfig}).single("image", "avatar"));
+    // app.use(multer({storage:storageConfig}).array("image"));
+    var upload = multer({storage:storageConfig})
 
     app.use('/api/fish', router);
 
-    router.post("/", fish.create);
+    router.post("/", upload.single("image"), fish.create);
     // router.get("/", fish.findAll);
     router.get("/", fish.readAll);
     router.get("/pag/", fish.findAllPagination);
@@ -26,7 +29,7 @@ module.exports = app => {
     //router.post("/test/", upload.single('image'), fish.parse);
 
     //router.get("/:id", fishes.findOne);
-    router.put("/:id", fish.update);
+    router.put("/:id", upload.single("image"), fish.update);
     router.delete("/:id", fish.deleteById);
     //router.delete("/", fishes.deleteAll);
 }
