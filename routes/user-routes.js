@@ -22,6 +22,7 @@ module.exports = app => {
     app.use('/api/users', router);
 
     router.post("/", user.create);
+    router.post("/changepassword", upload.none(), user.updatePassword);
     router.get("/", user.readAll);
     router.get("/:login", user.readOne);
     router.put("/:login", upload.single("avatar"), user.update);

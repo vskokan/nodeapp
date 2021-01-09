@@ -96,7 +96,7 @@ exports.update = (req, res) => {
         login: req.body.login,
         oldLogin: req.body.oldLogin,
         email: req.body.email,
-        password: req.body.password,
+        //password: req.body.password,
         admin: req.body.admin,
         name: req.body.name,
         place: req.body.place,
@@ -107,7 +107,7 @@ exports.update = (req, res) => {
     //Хеширование пароля для обновления в базе
 
      // может асинхронно?
-    user.hashedPassword = bcrypt.hashSync(user.password, salt)
+    //user.hashedPassword = bcrypt.hashSync(user.password, salt)
 
     //Обновление данных пользователя в зависимости от наличия файла изображения в зарпросе
 
@@ -125,7 +125,7 @@ exports.update = (req, res) => {
                 fs.unlinkSync(oldLink)
             }
             
-            client.query('UPDATE users SET login = $1, email = $2, password = $3, admin = $4, name = $5, place = $6, avatar = $7, raiting = $8 WHERE login = $9', [user.login, user.email, user.hashedPassword, user.admin, user.name, user.place, user.avatar, user.raiting, user.oldLogin], function (err, res) {
+            client.query('UPDATE users SET login = $1, email = $2, admin = $3, name = $4, place = $5, avatar = $6, raiting = $7 WHERE login = $8', [user.login, user.email, user.admin, user.name, user.place, user.avatar, user.raiting, user.oldLogin], function (err, res) {
                 if (err) {
                     console.log('Ошибка во время обновления данных')
                     return
@@ -138,7 +138,7 @@ exports.update = (req, res) => {
             })
         })
     } else {
-        client.query('UPDATE users SET login = $1, email = $2, password = $3, admin = $4, name = $5, place = $6, raiting = $7 WHERE login = $8', [user.login, user.email, user.hashedPassword, user.admin, user.name, user.place, user.raiting, user.oldLogin], function (err, res) {
+        client.query('UPDATE users SET login = $1, email = $2, admin = $3, name = $4, place = $5, raiting = $6 WHERE login = $7', [user.login, user.email, user.admin, user.name, user.place, user.raiting, user.oldLogin], function (err, res) {
             if (err) {
                 console.log('Ошибка во время обновления данных')
                 return
@@ -162,6 +162,53 @@ exports.update = (req, res) => {
    res.status(200).json({
     status: 'ok'
 }) 
+}
+
+exports.updatePassword = (req, res) => {
+    const login = req.query.login
+    //const oldPassword = req.oldPassword
+    //console.log(req.oldPassword)
+
+    const user = {
+        login: login,
+        oldPassword: req.body.oldPassword,
+        newPassword: req.body.newPassword
+    }
+
+    console.log(user)
+
+    //Проверка старого пароля с тем что в базе
+
+    client.query('SELECT password AS password FROM users WHERE login = $1', [user.login], function (err, result) {
+        if (err) {
+            console.log('Ошибка')
+            return
+        }
+
+        const passwordFromDB = result.rows[0].password
+        console.log(user.login, user.oldPassword, passwordFromDB)
+        bcrypt.compare(user.oldPassword, passwordFromDB)
+        .then((result) => {
+            console.log(result)
+            if(result === true) {
+                bcrypt.hash(user.newPassword, salt)
+                .then((hash) => {
+                    // Store hash in your password DB.
+                    client.query('UPDATE users SET password = $1 WHERE login = $2', [hash, user.login], function (err, result) {
+                        if (err) {
+                            console.log('Ошибка обновения хешированного пароля')
+                            return
+                        }
+                        result = {'status': 'ok'}
+                        res.send(result)
+                    })
+                }); 
+            } else {
+                res.send({'status': 'error'})
+            }
+            // result == true
+        });
+    })
 }
 
 exports.deleteByLogin = (req, res) => {
