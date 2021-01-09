@@ -3,10 +3,26 @@ module.exports = app => {
     let router = require("express").Router();
     app.use('/api/baits', router);
 
-    router.post("/", bait.create);
+    var multer  = require('multer')
+    
+    const storageConfig = multer.diskStorage({
+        destination: (req, file, cb) =>{
+            if (file.fieldname == "image")
+                cb(null, "uploads/fishes/")
+            if (file.fieldname == "avatar")
+                cb(null, "uploads/users/")
+        },
+        filename: (req, file, cb) =>{
+            cb(null, Date.now() + file.originalname);
+        }
+    });
+
+    const upload = multer({storage:storageConfig})
+
+    router.post("/", upload.none(), bait.create);
     router.get("/", bait.readAll);
     router.get("/:id", bait.readOne);
-    router.post("/update", bait.update);
+    router.post("/update", upload.none(), bait.update);
     router.delete("/:id", bait.deleteById);
     router.delete("/", bait.deleteAll);
 }

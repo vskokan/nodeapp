@@ -94,7 +94,7 @@ exports.update = (req, res) => {
 
     const user = {
         login: req.body.login,
-        oldLogin: req.body.oldLogin,
+        oldLogin: req.params.login,
         email: req.body.email,
         //password: req.body.password,
         admin: req.body.admin,
@@ -110,7 +110,7 @@ exports.update = (req, res) => {
     //user.hashedPassword = bcrypt.hashSync(user.password, salt)
 
     //Обновление данных пользователя в зависимости от наличия файла изображения в зарпросе
-
+    console.log(req.file)
     if (req.file !== undefined) {
         user.avatar = 'uploads/users/' + req.file.filename
 
