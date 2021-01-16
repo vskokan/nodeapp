@@ -6,10 +6,10 @@ module.exports = app => {
 
     app.use('/api/reviews', router);
 
-    router.post("/", multer.upload.none(), review.create);
+    router.post("/", multer.upload.none(), review.createWithPromises);
     router.get("/", review.readAll);
     //router.get("/:id", fishes.findOne);
-    //router.put("/:id", fishes.update);
+    router.put("/:id", multer.upload.none(), review.update);
     //router.delete("/:id", fishes.delete);
     //router.delete("/", fishes.deleteAll);
 }

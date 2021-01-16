@@ -1,13 +1,14 @@
+const { json } = require('body-parser')
 const client = require('../db')
 
-exports.findAll = (req, res) => {
-    client.query('SELECT id, login, to_char(reviews.reviewDate, $2) AS date, description, isbaiting, roadquality, fishingtime, raiting, latitude, longitude FROM reviews;', [], function (err, result) {
-         if (err) {
-            return next(err)
-        }
-        res.json(result.rows)
-    })
-}
+// exports.findAll = (req, res) => {
+//     client.query('SELECT id, login, to_char(reviews.reviewDate, $2) AS date, description, isbaiting, roadquality, fishingtime, raiting, latitude, longitude FROM reviews;', [], function (err, result) {
+//          if (err) {
+//             return next(err)
+//         }
+//         res.json(result.rows)
+//     })
+// }
 
 exports.findOneByParameter = (req, res) => {
     let parameter = req.body.parameter
@@ -55,6 +56,7 @@ exports.readAll = (req, res) => {
         return
     }
     if (page === undefined) {
+
         client.query("SELECT id, login, to_char(date, 'DD.MM.YYYY') AS date, description, isbaiting, roadquality, fishingtime, raiting, latitude, longitude FROM reviews;", [], function (err, result) {
             if (err) {
                 return next(err)
@@ -92,3 +94,120 @@ exports.readAll = (req, res) => {
         })
     }
 }
+
+exports.createWithPromises = (req, res) => {
+    const review = {
+        login: req.body.login,
+        description: req.body.description,
+        isBaiting: req.body.isBaiting,
+        roadQuality: req.body.roadQuality,
+        fishingTime: req.body.fishingTime,
+        raiting: 0,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude
+    }
+
+    client.query('BEGIN')
+    .then((result) => {
+        return client.query('INSERT INTO reviews (login, date, description, isbaiting, roadquality, fishingtime, raiting, latitude, longitude) VALUES ($1, current_date, $2, $3, $4, $5, $6, $7, $8)',
+                            [review.login, review.description, review.isBaiting, review.roadQuality,review.fishingTime, review.raiting, review.latitude, review.longitude])
+    })
+    .then((result) => {
+        return client.query('UPDATE users SET raiting = raiting + 10 WHERE login = $1', 
+                            [review.login])
+    })
+    .then((result) => {
+        return client.query('commit')
+    })
+    .then((result) => {
+        console.log('Транзакция вроде сработала')
+        result = { status: 'ok' }
+        res.send(result)
+    })
+    .catch((err) => {
+        console.log('Ошибка в транзакции, откат: ', err)
+        return client.query('ROLLBACK')
+    })
+    .catch((err) => {
+        console.log('Ошибка во время отката: ', err)
+    })
+}
+
+exports.update = (req, res) => {
+    const review = {
+        id: req.params.id,
+        description: req.body.description,
+        isBaiting: req.body.isBaiting,
+        roadQuality: req.body.isBaiting,
+        fishingTime: req.body.fishingTime,
+        raiting: req.body.raiting,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude
+    }
+
+    // client.query('UPDATE reviews SET desription = $1, isbaiting = $2, roadquality = $3, fishingtime = $4, raiting = $5, latitude = $6, longitude = $7 WHERE id = $8', [review.description, review.isBaiting, review.roadQuality, review.fishingTime, review.raiting, review.latitude, review.longitude], function (err, result) {
+    //     if (err) {
+    //         console.log('Ошибка на этапе обновления')
+    //         return
+    //     }
+    //     client.query('UPDATE users SET raiting = raiting + 10 WHERE login in (SELECT login FROM reviews WHERE id = $1)', [review.id], function(err, result) {
+    //         if (err) {
+    //             console.log('Ошибка на этапе зачисления рейтинга')
+    //         }
+    //         return
+    //     })
+    //     res.send(result)
+    // })
+
+    client.query('UPDATE reviews SET description = $1, isbaiting = $2, roadquality = $3, fishingtime = $4, raiting = $5, latitude = $6, longitude = $7 WHERE id = $8', 
+                [review.description, review.isBaiting, review.roadQuality, review.fishingTime, review.raiting, review.latitude, review.longitude, review.id])
+    .then((result) => {
+        res.send(result)
+    })
+    .catch((err) => {
+        console.log('Ошибо4ка: ', err)
+    })
+
+    console.log(review)
+}
+
+// exports.update = (err, res) => {
+//     client
+//     .query('begin')
+//     .then((res) => {
+//         const review = {
+//                     id: req.params.id,
+//                     description: req.body.description,
+//                     isBaiting: req.body.isBaiting,
+//                     roadQuality: req.body.isBaiting,
+//                     fishingTime: req.body.fishingTime,
+//                     raiting: req.body.raiting,
+//                     latitude: req.body.latitude,
+//                     longitude: req.body.longitude
+//         }
+
+//         return client.query(
+//             "UPDATE reviews SET desription = $1, isbaiting = $2, roadquality = $3, fishingtime = $4, raiting = $5, latitude = $6, longitude = $7 WHERE id = $8",
+//             [review.description, review.isBaiting, review.roadQuality, review.fishingTime, review.raiting, review.latitude, review.longitude]
+//         )
+//     })
+//     .then((res) => {
+//         return client.query(
+//             "UPDATE users SET raiting = raiting + 10 WHERE login in (SELECT login FROM reviews WHERE id = $1)",
+//             ["Dog Biscuit", 3, "Cat Food", 5]
+//         )
+//     })
+//     .then((res) => {
+//         return client.query("commit")
+//     })
+//     .then((res) => {
+//         console.log("transaction completed")
+//     })
+//     .catch((err) => {
+//         console.error("error while querying:", err)
+//         return client.query("rollback")
+//     })
+//     .catch((err) => {
+//         console.error("error while rolling back transaction:", err)
+//     })
+// }
