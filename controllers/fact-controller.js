@@ -30,6 +30,7 @@ exports.create = (req, res) => {
 exports.readAll = (req, res) => {
     const page = req.query.page
     const p = req.query.p
+    const review = req.query.review
     if (p === "amount") {
         client.query('SELECT COUNT(*) AS amount FROM facts', [])
         .then((result) => {
@@ -40,13 +41,26 @@ exports.readAll = (req, res) => {
             return res.json(err)
         })
     }
-    if (page === undefined) {
-        
+    if ((review !== undefined) && (page === undefined)) {
+        client.query('SELECT facts.id AS fact, reviews.id AS review, fishes.name AS fish, baits.name AS bait, methods.name AS method FROM facts JOIN reviews ON reviews.id = facts.review JOIN fishes ON fishes.id = facts.fish JOIN baits ON baits.id = facts.bait JOIN methods ON methods.id = facts.method WHERE review = $1;',
+                [review])
+        .then((result) => {
+            console.log('Выборка фактов для отзыва ', review)
+            res.send(result.rows)
+            return
+        })
+        .catch((err) => {
+            console.log('Ошибка выборки фактов по отзыву: ', err)
+            return
+        })   
+    }
+    else if ((page === undefined) && (review === undefined)) {
         client.query("SELECT id, review, fish, bait, method FROM facts;", [])
         .then((result) => {
             //console.log(result)
             // res.statusCode = 200;
             // res.setHeader('Content-Type', 'json');
+            console.log('djdjfkdmjfkhj')
             return res.json(result.rows) //тут ошибка Cannot set headers after they are sent to the client
             //return
         })

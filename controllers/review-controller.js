@@ -74,21 +74,21 @@ exports.readAll = (req, res) => {
                 console.log('Ошибка на этапе подсчета')
                 return
             }
-            console.log(result.rows[0].rownumber)
+            //console.log(result.rows[0].rownumber)
             data.maxpage = Math.ceil(result.rows[0].rownumber / rowsPerPage)
-            console.log('maxpage: ' + data.maxpage)
-            console.log('page from url ', page)
+            //console.log('maxpage: ' + data.maxpage)
+            //console.log('page from url ', page)
 
             let from = rowsPerPage * (page - 1) + 1
             let to = rowsPerPage * page
-            console.log(from, to)
+            //console.log(from, to)
 
             client.query("SELECT * FROM (SELECT id, login, to_char(date, 'DD.MM.YYYY') AS date, description, isbaiting, roadquality, fishingtime, raiting, latitude, longitude, ROW_NUMBER () OVER (ORDER BY id) FROM reviews) AS numberedRows WHERE row_number BETWEEN $1 AND $2;", [from, to], function (err, result) {
                 if (err) {
                     console.log(err)
                 }
                 data.rows = result.rows
-                console.log(data)
+                //console.log(data)
                 res.json(data)
             })
         })
