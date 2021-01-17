@@ -72,7 +72,7 @@ exports.readAll = (req, res) => {
             let to = rowsPerPage * page
             console.log(from, to)
 
-            client.query('SELECT * FROM (SELECT id, review, fish, bait, method, ROW_NUMBER () OVER (ORDER BY id) FROM facts) AS numberedRows WHERE row_number BETWEEN $1 AND $2',
+            client.query('SELECT * FROM (SELECT facts.id AS id, reviews.id AS review, fishes.id AS fish, fishes.name AS fishname, baits.id AS bait, baits.name AS baitname, methods.id AS method, methods.name AS methodname, ROW_NUMBER () OVER (ORDER BY facts.id) FROM facts JOIN reviews ON reviews.id = facts.review JOIN fishes ON fishes.id = facts.fish JOIN baits ON baits.id = facts.bait JOIN methods ON methods.id = facts.method) AS numberedRows WHERE row_number BETWEEN $1 AND $2',
                         [from, to])
             .then((result) => {
                 data.rows = result.rows
@@ -85,4 +85,39 @@ exports.readAll = (req, res) => {
             })   
         })      
     }
+}
+
+exports.update = (req, res) => {
+    const fact = {
+        id: req.params.id,
+        review: req.body.review,
+        fish: req.body.fish,
+        bait: req.body.bait,
+        method: req.body.method
+    }
+
+    console.log(fact)
+
+    client.query('UPDATE facts SET review = $1, fish = $2, bait = $3, method = $4 WHERE id = $5',
+                [fact.review, fact.fish, fact.bait, fact.method, fact.id])
+    .then((result) => {
+        console.log('Факт обновлен')
+        console.log(result.rows)
+        res.json(result.rows)
+    })
+    .catch((err) => {
+        console.log('Ошибка в обновлении факта: ', err)
+    })
+}
+
+exports.deleteById = (req, res) => {
+    let id = req.params.id
+    console.log('УДАЛЕНИЕ!!!!!!!!!!', id)
+    client.query('DELETE FROM facts WHERE id = $1;', [id])
+    .then((result) => {
+        res.status(200).json({status: 'ok'})
+    })
+    .catch((err) => {
+        console.log('Ошибка удаления факта: ', err)
+    })
 }
