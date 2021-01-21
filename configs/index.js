@@ -6,6 +6,8 @@ var multer  = require('multer')
                 cb(null, "uploads/fishes/")
             if (file.fieldname == "avatar")
                 cb(null, "uploads/users/")
+            if (file.fieldname == "images")
+                cb(null, `uploads/reviews/`)
         },
         filename: (req, file, cb) =>{
             cb(null, Date.now() + file.originalname);

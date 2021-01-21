@@ -22,5 +22,6 @@ require("./routes/place-routes")(app);
 require("./routes/review-routes")(app);
 require("./routes/fact-routes")(app);
 require("./routes/fullReview-routes")(app);
+require("./routes/fullReview2-routes")(app);
 
 app.listen(3000) //, '192.168.0.102');
