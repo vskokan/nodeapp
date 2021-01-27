@@ -4,12 +4,15 @@ const express = require("express");
 const cors = require('cors')
 const app = express();
 var bodyParser = require('body-parser');
+// var cookieParser = require('cookie-parser')
+
 var corsOptions = {
   origin: "*"
 };
 
 
 app.use(bodyParser.json());
+// app.use(cookieParser())
 app.use(cors(corsOptions));
 app.use(express.static(__dirname))
 

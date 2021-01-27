@@ -16,30 +16,32 @@ exports.login = (req, res) => {
     console.log(user)
 
     /* Проверяем, совпадают ли хэши паролей */
-    client.query('SELECT password AS hash, admin from users WHERE login = $1', [user.login])
+    client.query('SELECT login, password AS hash, admin, email, place, avatar, raiting, name from users WHERE login = $1', [user.login])
     .then((result) => {
         const hash = result.rows[0].hash
-        user.admin = result.rows[0].admin
+        const currentUser = result.rows[0]
         bcrypt.compare(user.password, hash)
         .then((result) => {
             if (result === true) { //если пароль верный, то надо создать сессию, т.е. выдать токены и сделать запись в БД об этом
                 const accessToken = jwt.sign({
-                    data: {
-                        login: user.login,
-                        admin: user.admin
-                    },
+                    data: user,
                     exp: Math.floor(Date.now() / 1000) + 60 * 10
                 }, 'secret')
 
                 const refreshToken = uuidv1()
 
+                console.log(currentUser)
                 console.log('Access token: ', accessToken)
                 console.log('Refresh Token: ', refreshToken)
 
                 client.query('INSERT INTO sessions (login, ip, user_agent, refresh_token, last_update) VALUES ($1, $2, $3, $4, current_timestamp)',
                                 [user.login, user.ip, user.userAgent, refreshToken])
-                .then((accessToken, refreshToken) => {
-                    res.status(200).json({access: accessToken, refresh: refreshToken})
+                .then((result) => {
+                     result = {user: currentUser, access: accessToken, refresh: refreshToken}
+                     return result
+                })
+                .then((result) => {
+                    res.status(200).json(result)
                 })
 
             } else {
@@ -51,13 +53,13 @@ exports.login = (req, res) => {
     })
 }
 
-exports.verify = (req, res) => { //Тест
+exports.verify = (req, res, next) => { //Тест
     const auth = {
-        access: req.cookie.access,
-        refresh: req.body.refresh
+        cookie: req.cookie
     }
 
-    console.log(auth)
+    console.log('Куки!', req.cookie)
+    next()
 }
 
 // exports.startSession = (req, res) => {
