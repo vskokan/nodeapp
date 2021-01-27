@@ -6,7 +6,7 @@ module.exports = app => {
 
     app.use('/api/au', router);
 
-    router.post('/login', multer.upload.none(), au.login)
+    router.post('/login', au.login)
 
     // router.post("/", multer.upload.none(), fact.create);
     // router.get("/", fact.readAll);
