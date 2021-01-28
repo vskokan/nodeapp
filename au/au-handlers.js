@@ -32,20 +32,28 @@ exports.login = (req, res) => {
                     exp: Math.floor(Date.now() / 1000) + 60 * 1
                 }, 'secret')
 
-                const refreshToken = uuidv1()
+                // const refreshToken = uuidv1()
+
+                const refreshToken = jwt.sign({
+                    data: {
+                        login: user.login,
+                        userAgent: user.userAgent,
+                        created: Date.now()
+                    },
+                }, 'secret')
 
                 console.log(currentUser)
                 console.log('Access token: ', accessToken)
                 console.log('Refresh Token: ', refreshToken)
 
-                client.query('INSERT INTO sessions (login, ip, user_agent, refresh_token, last_update) VALUES ($1, $2, $3, $4, current_timestamp)',
+                client.query('INSERT INTO sessions (login, ip, user_agent, refresh_token) VALUES ($1, $2, $3, $4)',
                                 [user.login, user.ip, user.userAgent, refreshToken])
                 .then((result) => {
-                     result = {user: currentUser, access: accessToken, refresh: refreshToken}
+                     result = {user: currentUser, accessToken: accessToken, refreshToken: refreshToken}
                      return result
                 })
                 .then((result) => {
-                    res.status(200).json(result)
+                    res.status(200).cookie('accessToken', `${result.accessToken}`, { maxAge: 900000, httpOnly: true }).json({user: result.user, refreshToken: result.refreshToken})
                 })
 
             } else {
@@ -63,6 +71,7 @@ exports.verify = (req, res, next) => { //Тест
         //user: req.cookies.user,
         accessToken: req.cookies.token,
         refreshToken: req.body.refreshToken,
+        message: req.body.message
         //userAgent: req.body.userAgent
     }
 
@@ -72,15 +81,21 @@ exports.verify = (req, res, next) => { //Тест
                 console.log('Токен доступа устарел')
                 const decoded = jwt.decode(auth.accessToken)
                 console.log(decoded)
+                res.status(500).json({message: 'Токен доступа устарел'})
             }
         } else {
             console.log('Токен доступа нормальный, декодированно: ', decoded)
+            if (message === undefined) {
+                next()
+            } else {
+                res.status(200).json({message: 'Токен действителен'})
+            }
         }
 
         
     })
 
-    next()
+    
 }
 
 // exports.startSession = (req, res) => {

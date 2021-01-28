@@ -21,6 +21,7 @@ const au = require("./au-handlers.js")
 var express = require('express')
 var router = express.Router()
 const multer = require("../configs/index.js")
-router.post('/login', multer.upload.none(), au.verify, au.login)
+router.post('/login', multer.upload.none(), au.login)
+router.post('/verify', multer.upload.none(), au.verify)
 
 module.exports = router
