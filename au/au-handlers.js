@@ -1,5 +1,6 @@
 const client = require('../db')
 const bcrypt = require('bcrypt')
+const cookieParser = require('cookie-parser')
 // const salt = bcrypt.genSaltSync(10)
 const jwt = require('jsonwebtoken')
 const { v1: uuidv1 } = require('uuid')
@@ -24,8 +25,11 @@ exports.login = (req, res) => {
         .then((result) => {
             if (result === true) { //если пароль верный, то надо создать сессию, т.е. выдать токены и сделать запись в БД об этом
                 const accessToken = jwt.sign({
-                    data: user,
-                    exp: Math.floor(Date.now() / 1000) + 60 * 10
+                    data: {
+                        login: user.login,
+                        userAgent: user.userAgent
+                    },
+                    exp: Math.floor(Date.now() / 1000) + 60 * 1
                 }, 'secret')
 
                 const refreshToken = uuidv1()
@@ -54,11 +58,28 @@ exports.login = (req, res) => {
 }
 
 exports.verify = (req, res, next) => { //Тест
-    const auth = {
-        cookie: req.cookie
+    /* С клиента получаем его логин, токены, user-agent (надо бы это всё в jwt хранить?) */
+    const auth = { 
+        //user: req.cookies.user,
+        accessToken: req.cookies.token,
+        refreshToken: req.body.refreshToken,
+        //userAgent: req.body.userAgent
     }
 
-    console.log('Куки!', req.cookie)
+    jwt.verify(auth.accessToken, 'secret', (err, decoded) => {
+        if (err) {
+            if(err.message = 'jwt expired') {
+                console.log('Токен доступа устарел')
+                const decoded = jwt.decode(auth.accessToken)
+                console.log(decoded)
+            }
+        } else {
+            console.log('Токен доступа нормальный, декодированно: ', decoded)
+        }
+
+        
+    })
+
     next()
 }
 

@@ -4,6 +4,7 @@ module.exports = app => {
     app.use('/api/baits', router);
 
     var multer  = require('multer')
+    const au = require('../au/au-handlers')
     
     const storageConfig = multer.diskStorage({
         destination: (req, file, cb) =>{
@@ -21,7 +22,7 @@ module.exports = app => {
 
     const upload = multer({storage:storageConfig})
 
-    router.post("/", upload.none(), bait.create);
+    router.post("/", upload.none(), au.verify, bait.create);
     router.get("/", bait.readAll);
     router.get("/:id", bait.readOne);
     router.post("/update", upload.none(), bait.update);
