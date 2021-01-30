@@ -152,6 +152,20 @@ exports.verify = (req, res, next) => { //Тест
     
 }
 
+exports.logout = (req, res) => {
+    console.log(req.headers)
+    client.query('DELETE FROM sessions WHERE refresh_token = $1', [req.cookies.refreshToken])
+    .then((result) => {
+        console.log('Сессия удалена успешно')
+        res.clearCookie('accessToken').clearCookie('refreshToken')
+        res.status(200).json({message: 'logout'})
+        // res.status(200).cookie('accessToken', `${null}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${null}`, { maxAge: 900000, httpOnly: true }).json({message: 'Logout'})
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+}
+
 function generateTokens(login, userAgent) {
     const accessToken = jwt.sign({
         data: {
@@ -173,23 +187,3 @@ function generateTokens(login, userAgent) {
     return { accessToken: accessToken, refreshToken: refreshToken }
 }
 
-function updateRefreshToken(userData, token) {
-    console.log('Я внутри по обновлению!!')
-    client.query('UPDATE sessions SET refresh_token = $1 WHERE login = $2 AND ip = $3 AND user_agent = $4', [token, userData.login, userData.ip, userData.userAgent])
-    // .then((result) => {
-    //     return true
-    // })
-    // .catch((err) => {
-    //     console.log(err)
-    //     return false
-    // })
-    .then((result) => {
-        console.log(result)
-            res.status(200).cookie('accessToken', `${tokens.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 900000, httpOnly: true }).json({user: user})
-
-    })
-    .catch((err) => {
-        console.log('Ошибка обновления токена: ',err)
-        res.status(500).json({message: 'Ошибка сервера при обновлении токенов'})
-    })
-}
