@@ -29,7 +29,7 @@ exports.login = (req, res) => {
                         login: user.login,
                         userAgent: user.userAgent
                     },
-                    exp: Math.floor(Date.now() / 1000) + 60 * 1
+                    exp: Math.floor(Date.now() / 1000) + 30 * 1
                 }, 'secret')
 
                 // const refreshToken = uuidv1()
@@ -44,6 +44,7 @@ exports.login = (req, res) => {
 
                 console.log(currentUser)
                 console.log('Access token: ', accessToken)
+                console.log(jwt.decode(accessToken))
                 console.log('Refresh Token: ', refreshToken)
 
                 client.query('INSERT INTO sessions (login, ip, user_agent, refresh_token) VALUES ($1, $2, $3, $4)',
@@ -53,7 +54,7 @@ exports.login = (req, res) => {
                      return result
                 })
                 .then((result) => {
-                    res.status(200).cookie('accessToken', `${result.accessToken}`, { maxAge: 900000, httpOnly: true }).json({user: result.user, refreshToken: result.refreshToken})
+                    res.status(200).cookie('accessToken', `${result.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${result.refreshToken}`, { maxAge: 900000, httpOnly: true }).json({user: result.user})
                 })
 
             } else {
@@ -69,23 +70,76 @@ exports.verify = (req, res, next) => { //Тест
     /* С клиента получаем его логин, токены, user-agent (надо бы это всё в jwt хранить?) */
     const auth = { 
         //user: req.cookies.user,
-        accessToken: req.cookies.token,
-        refreshToken: req.body.refreshToken,
+        accessToken: req.cookies.accessToken,
+        refreshToken: req.cookies.refreshToken,
         message: req.body.message
         //userAgent: req.body.userAgent
     }
 
+    //console.log(req.headers)
+
     jwt.verify(auth.accessToken, 'secret', (err, decoded) => {
         if (err) {
-            if(err.message = 'jwt expired') {
-                console.log('Токен доступа устарел')
-                const decoded = jwt.decode(auth.accessToken)
-                console.log(decoded)
-                res.status(500).json({message: 'Токен доступа устарел'})
+            //console.log(err)
+            if(err.message == 'jwt expired') {
+                console.log('Токен доступа устарел') // Если токен устарел, проверяем наличие refreshToken в БД
+                const decodedToken = jwt.decode(auth.accessToken)
+               // console.log('DECODED: ', decodedToken)
+                const user = {
+                    login: decodedToken.data.login,
+                    userAgent: decodedToken.data.userAgent,
+                    ip: req.ip
+                }
+                //console.log('USER: ', user)
+                /* Теперь получим refreshToken из базы данных и сверим его дату создания с датой создания токена, который пришел от пользлователя
+                Если они совпадают, то всё нормально и можно генерировать новую пару и продолжать сессию
+                Если не совпадают, то завершает сессию, удалив refreshToken из БД и куки */
+
+                client.query('SELECT refresh_token AS token FROM sessions WHERE login = $1 AND user_agent = $2 AND ip = $3', [user.login, user.userAgent, user.ip])
+                .then((result) => {
+                    //console.log('Результат селекта: ', result)
+                    //console.log(jwt.decode(auth.refreshToken))
+                    const isRefreshValid = (jwt.decode(auth.refreshToken).data.created === jwt.decode(result.rows[0].token).data.created)
+                    //console.log(isRefreshValid)
+                    if (!isRefreshValid) {
+                        client.query('DELETE FROM sessions WHERE login = $1 AND user_agent = $2 AND ip = $3', [user.login, user.userAgent, user.ip])
+                        .then(() => {
+                            res.status(403).json({message: 'Токены не совпадают'}) // По идее, эта ошибка будет и если токена в принципе нет в базе, когда result === undefined
+                        })
+                        .catch((err) => {
+                            console.log('Что-то пошло не так при удалении сессии')
+                        })
+                        
+                    } else {
+                        const tokens = generateTokens(user.login, user.userAgent)
+                        client.query('UPDATE sessions SET refresh_token = $1 WHERE login = $2 AND ip = $3 AND user_agent = $4', [tokens.refreshToken, user.login, user.ip, user.userAgent])
+                        .then((result) => {
+                            //console.log(result)
+                            // res.locals.tokens = tokens
+                            // res.locals.user = user
+                            console.log('Токены обновлены и передаются куками в след. обработчик')
+                            res.cookie('accessToken', `${tokens.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 900000, httpOnly: true })
+                            next()
+                            //res.status(200).cookie('accessToken', `${tokens.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 900000, httpOnly: true }).json({user: user})
+                        })
+                        .catch((err) => {
+                            console.log('Ошибка обновления токена: ',err)
+                            res.status(500).json({message: 'Ошибка сервера при обновлении токенов'})
+                        })
+                        
+                        // updateRefreshToken(tokens.refreshToken, user)
+                        
+                    }
+                })
+                .catch((err) => {
+                    console.log('Помогите: ', err)
+                })
+                //console.log('Хуй знает че тут вроде конеуц функции')
+                // res.status(500).json({message: 'Токен доступа устарел'})
             }
         } else {
             console.log('Токен доступа нормальный, декодированно: ', decoded)
-            if (message === undefined) {
+            if (auth.message === undefined) {
                 next()
             } else {
                 res.status(200).json({message: 'Токен действителен'})
@@ -98,6 +152,44 @@ exports.verify = (req, res, next) => { //Тест
     
 }
 
-// exports.startSession = (req, res) => {
+function generateTokens(login, userAgent) {
+    const accessToken = jwt.sign({
+        data: {
+            login: login,
+            userAgent: userAgent
+        },
+        exp: Math.floor(Date.now() / 1000) + 60 * 1
+    }, 'secret')
 
-// }
+
+    const refreshToken = jwt.sign({
+        data: {
+            login: login,
+            userAgent: userAgent,
+            created: Date.now()
+        },
+    }, 'secret')
+
+    return { accessToken: accessToken, refreshToken: refreshToken }
+}
+
+function updateRefreshToken(userData, token) {
+    console.log('Я внутри по обновлению!!')
+    client.query('UPDATE sessions SET refresh_token = $1 WHERE login = $2 AND ip = $3 AND user_agent = $4', [token, userData.login, userData.ip, userData.userAgent])
+    // .then((result) => {
+    //     return true
+    // })
+    // .catch((err) => {
+    //     console.log(err)
+    //     return false
+    // })
+    .then((result) => {
+        console.log(result)
+            res.status(200).cookie('accessToken', `${tokens.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 900000, httpOnly: true }).json({user: user})
+
+    })
+    .catch((err) => {
+        console.log('Ошибка обновления токена: ',err)
+        res.status(500).json({message: 'Ошибка сервера при обновлении токенов'})
+    })
+}
