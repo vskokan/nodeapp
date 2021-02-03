@@ -23,6 +23,7 @@ var router = express.Router()
 const multer = require("../configs/index.js")
 router.post('/login', multer.upload.none(), au.login)
 router.post('/verify', multer.upload.none(), au.verify)
+// router.post('/verify', multer.upload.none(), au.verify)
 router.post('/logout', multer.upload.none(), au.logout)
 
 module.exports = router

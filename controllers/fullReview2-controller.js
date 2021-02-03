@@ -6,7 +6,7 @@ exports.create = (req, res) => {
     const review = {
         login: req.body.login,
         description: req.body.description,
-        isBaiting: 1,
+        isBaiting: req.body.isBaiting,
         roadQuality: 1,
         fishingTime: req.body.fishingTime,
         raiting: 0,
@@ -74,4 +74,28 @@ function transformFacts(facts) {
     })
 
     return transformedFacts
+}
+
+exports.byId = (req, res) => {
+    const reviews = []
+    const review = {
+        id: '',
+        user: {
+            login: '',
+            avatar: '',
+            raiting: ''
+        },
+        isBaiting: '',
+        description: '',
+        roadQuality: '',
+        fishingTime: '',
+        coords: {
+            latitude: '',
+            longitude: ''
+        },
+        facts: [],
+        photos: []
+    }
+
+    //дальше лень
 }
