@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
 // const salt = bcrypt.genSaltSync(10)
 const jwt = require('jsonwebtoken')
-const { v1: uuidv1 } = require('uuid')
+
 
 exports.login = (req, res) => {
     /* Получили логин и пароль с клиента */
@@ -286,5 +286,29 @@ exports.verify = (req, res, next) => {
 
     })
 
+
+}
+
+exports.register = (req, res) => {
+
+    const salt = bcrypt.genSaltSync(10)
+    const user = {
+        login: req.body.login,
+        email: req.body.email,
+        password:req.body.password,
+    }
+
+    console.log(user)
+
+    user.hashedPassword = bcrypt.hashSync(req.body.password, salt)
+
+    client.query('INSERT INTO users (login, email, password, admin, name, place, avatar, raiting) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [user.login, user.email, user.hashedPassword, false, 'Не указано', 1, 'uploads/users/default.png', 0])
+    .then((result) => {
+        res.status(200).json({message: 'Successful insert'})
+    })
+    .catch((err) => {
+        console.log(err)
+    })
 
 }
