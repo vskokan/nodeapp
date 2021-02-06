@@ -241,7 +241,7 @@ exports.verify = (req, res, next) => {
                         client.query('UPDATE sessions SET refresh_token = $1 WHERE login = $2 AND ip = $3 AND user_agent = $4', [tokens.refreshToken, user.login, user.ip, user.userAgent])
                         .then((result) => {
                             console.log('Токены обновлены и передаются куками в след. обработчик')
-                            res.cookie('accessToken', `${tokens.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 900000, httpOnly: true })
+                            res.cookie('accessToken', `${tokens.accessToken}`, { maxAge: 8640000000000, httpOnly: true }).cookie('refreshToken', `${tokens.refreshToken}`, { maxAge: 8640000000000, httpOnly: true })
                             if (auth.message === undefined) {
                                 next()
                             } else if (auth.message === 'check session') {
