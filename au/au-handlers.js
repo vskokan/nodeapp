@@ -54,7 +54,7 @@ exports.login = (req, res) => {
                      return result
                 })
                 .then((result) => {
-                    res.status(200).cookie('accessToken', `${result.accessToken}`, { maxAge: 900000, httpOnly: true }).cookie('refreshToken', `${result.refreshToken}`, { maxAge: 900000, httpOnly: true }).json({user: result.user})
+                    res.status(200).cookie('accessToken', `${result.accessToken}`, { maxAge: 8640000000000, httpOnly: true }).cookie('refreshToken', `${result.refreshToken}`, { maxAge: 8640000000000, httpOnly: true }).json({user: result.user})
                 })
 
             } else {
