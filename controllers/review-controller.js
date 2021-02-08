@@ -211,3 +211,15 @@ exports.update = (req, res) => {
 //         console.error("error while rolling back transaction:", err)
 //     })
 // }
+
+exports.getPhotos = (req, res) => {
+    const id = req.params.id
+
+    client.query('SELECT * FROM reviewphotos WHERE review = $1', [id])
+    .then((result) => {
+        res.status(200).json(result.rows)
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+}

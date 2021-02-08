@@ -8,6 +8,7 @@ module.exports = app => {
 
     router.post("/", multer.upload.none(), review.createWithPromises);
     router.get("/", review.readAll);
+    router.get("/:id/photos", review.getPhotos);
     //router.get("/:id", fishes.findOne);
     router.put("/:id", multer.upload.none(), review.update);
     //router.delete("/:id", fishes.delete);
