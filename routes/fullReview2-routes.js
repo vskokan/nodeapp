@@ -9,7 +9,7 @@ module.exports = app => {
 
     router.post("/", multer.upload.array("images", 5), review.create);
     // router.post("/changepassword", multer.upload.none(), user.updatePassword);
-    // router.get("/", multer.upload.none(), user.readAll);
+    router.get("/", multer.upload.none(), review.getAll);
     // router.get("/:login", multer.upload.none(), user.readOne);
     // router.put("/:login", multer.upload.single("avatar"), user.update);
     // router.delete("/:login", multer.upload.none(), user.deleteByLogin);

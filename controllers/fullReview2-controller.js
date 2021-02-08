@@ -99,3 +99,15 @@ exports.byId = (req, res) => {
 
     //дальше лень
 }
+
+
+exports.getAll = (req, res) => {
+    client.query("SELECT users.login, users.avatar, users.raiting AS userRating, reviews.id, to_char(reviews.date, 'DD.MM.YYYY') AS date, reviews.description, reviews.isbaiting, reviews.roadquality, reviews.fishingtime," +
+                'reviews.raiting, reviews.latitude, reviews.longitude FROM users INNER JOIN reviews ON reviews.login = users.login')
+    .then((result) => {
+        res.status(200).json(result)
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+}

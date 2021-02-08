@@ -1,3 +1,4 @@
+const e = require('express')
 const client = require('../db')
 
 exports.findAll = (req, res) => {
@@ -42,11 +43,17 @@ exports.readAll = (req, res) => {
         })
     }
     if ((review !== undefined) && (page === undefined)) {
-        client.query('SELECT facts.id AS fact, reviews.id AS review, fishes.name AS fish, baits.name AS bait, methods.name AS method FROM facts JOIN reviews ON reviews.id = facts.review JOIN fishes ON fishes.id = facts.fish JOIN baits ON baits.id = facts.bait JOIN methods ON methods.id = facts.method WHERE review = $1;',
+        client.query('SELECT facts.id AS fact, reviews.id AS review, fishes.id AS fishId, fishes.name AS fishName, baits.id AS baitId, baits.name AS baitName, baits.description AS baitdescription,  methods.id AS methodID, methods.name AS methodName, methods.description AS methodDescription FROM facts JOIN reviews ON reviews.id = facts.review JOIN fishes ON fishes.id = facts.fish JOIN baits ON baits.id = facts.bait JOIN methods ON methods.id = facts.method WHERE review = $1;',
                 [review])
         .then((result) => {
             console.log('Выборка фактов для отзыва ', review)
-            res.send(result.rows)
+            console.log(result.rows)
+            console.log('fihlkgjflfk')
+            console.log(formatFacts(result.rows))
+
+            const facts = formatFacts(result.rows)
+            // res.send(result.rows)
+            res.status(200).json(facts)
             return
         })
         .catch((err) => {
@@ -134,4 +141,84 @@ exports.deleteById = (req, res) => {
     .catch((err) => {
         console.log('Ошибка удаления факта: ', err)
     })
+}
+
+function formatFacts(facts) {
+    const formatedFacts = []
+    let fishes = []
+    const combinations = formCombinations(facts)
+
+    combinations.forEach(combination => {
+        facts.forEach(fact => {
+            if (fact.baitid == combination.bait.id && fact.methodid == combination.method.id) {
+                fishes.push(
+                    {
+                        id: fact.fishid,
+                        name: fact.fishname
+                    }
+                )
+            }
+        })
+        console.log(combination)
+        console.log(fishes)
+        formatedFacts.push(
+            {
+                combination: combination,
+                fishes: fishes
+            }
+        )
+
+        fishes = []
+    })
+
+    return formatedFacts
+}
+
+function formCombinations(facts) {
+    const combinations = []
+
+    facts.forEach(fact => {
+        combinations.push(
+            { 
+                bait: { 
+                    id: fact.baitid, 
+                    name: fact.baitname, 
+                    description: fact.baitdescription 
+                }, 
+                method: { 
+                    id:  fact.methodid,
+                    name: fact.methodname, 
+                    description: fact.methoddescription 
+                }
+            }
+        )
+    })
+
+    // let reducedCombinations = 
+    // console.log('skhfkjfk')
+    // console.log(reduceArrayOfObjects(reducedCombinations))
+    return reduceArrayOfObjects(combinations)
+}
+
+function reduceArrayOfObjects(array) {
+    let reducedArray = []
+
+    if (array.length == 1) {
+        reducedArray = array
+    } else {
+        for (let i = 0; i < array.length; i++) {
+            let isExist = false
+
+            for (let j = 0; j < reducedArray.length; j++) {
+                if (array[i].bait.id == reducedArray[j].bait.id && array[i].method.id == reducedArray[j].method.id) isExist = true
+            }
+
+            if (!isExist) {
+                reducedArray.push(array[i])
+            }
+        }
+    }
+
+    return reducedArray
+    //console.log('REDUCED', reducedArray)
 }
